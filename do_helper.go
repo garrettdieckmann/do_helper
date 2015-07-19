@@ -19,11 +19,13 @@ type TokenSource struct {
 }
 
 var listDropletsVar bool
-var dropletNetworkVar bool
+var listDropletsNetworkVar bool
+var publicDropletIPVar bool
 
 func init() {
 	flag.BoolVar(&listDropletsVar, "listDroplets", false, "List basic info on all Droplets")
-	flag.BoolVar(&dropletNetworkVar, "dropletNetwork", false, "List network info for individual Droplet")
+	flag.BoolVar(&listDropletsNetworkVar, "listDropletsNetwork", false, "List network info for individual Droplet")
+	flag.BoolVar(&publicDropletIPVar, "publicDropletIP", false, "Get Public IP address for specific Droplet")
 }
 
 func (t *TokenSource) Token() (*oauth2.Token, error) {
@@ -96,26 +98,31 @@ func prettyFullOutput(input godo.Droplet) {
 }
 
 func listDroplets(myDroplets []godo.Droplet) {
-	if len(myDroplets) == 0 {
-		fmt.Println("listDroplets: No droplets")
-	} else {
-		for droplet := 0; droplet < len(myDroplets); droplet++ {
-			fmt.Printf("%s (%d) Created: %s.\n", myDroplets[droplet].Name, myDroplets[droplet].ID, myDroplets[droplet].Created)
+	for droplet := 0; droplet < len(myDroplets); droplet++ {
+		fmt.Printf("%s (%d) Created: %s.\n", myDroplets[droplet].Name, myDroplets[droplet].ID, myDroplets[droplet].Created)
+	}
+}
+
+func listDropletsNetwork(myDroplets []godo.Droplet) {
+	for droplet := 0; droplet < len(myDroplets); droplet++ {
+		// Individual droplet header
+		fmt.Printf("%s (%d): \n", myDroplets[droplet].Name, myDroplets[droplet].ID)
+		netinfo := myDroplets[droplet].Networks.V4
+		// Each droplets network info for each interface
+		for neti := 0; neti < len(netinfo); neti++ {
+			fmt.Printf("\t%s: %s\n", netinfo[neti].Type, netinfo[neti].IPAddress)
 		}
 	}
 }
 
-func dropletNetwork(myDroplets []godo.Droplet) {
-	if len(myDroplets) == 0 {
-		fmt.Println("dropletNetwork: No droplets")
-	} else {
-		for droplet := 0; droplet < len(myDroplets); droplet++ {
-			// Individual droplet header
-			fmt.Printf("%s (%d): \n", myDroplets[droplet].Name, myDroplets[droplet].ID)
+func publicDropletIP(dropletName string, myDroplets []godo.Droplet) {
+	for droplet := 0; droplet < len(myDroplets); droplet++ {
+		if dropletName == myDroplets[droplet].Name {
 			netinfo := myDroplets[droplet].Networks.V4
-			// Each droplets network info for each interface
 			for neti := 0; neti < len(netinfo); neti++ {
-				fmt.Printf("\t%s: %s\n", netinfo[neti].Type, netinfo[neti].IPAddress)
+				if netinfo[neti].Type == "public" {
+					fmt.Printf("%s", netinfo[neti].IPAddress)
+				}
 			}
 		}
 	}
@@ -134,15 +141,22 @@ func main() {
 
 	// Assuming that API will need to happen. Running once
 	myDroplets, _ := DropletList(client)
-
+	if len(myDroplets) == 0 {
+		log.Fatal("No droplets")
+	}
+	// TODO: no more hard coding
+	dropletName := "Data01"
 	// command branching
 	switch {
 
 	case listDropletsVar == true:
 		listDroplets(myDroplets)
 
-	case dropletNetworkVar == true:
-		dropletNetwork(myDroplets)
+	case listDropletsNetworkVar == true:
+		listDropletsNetwork(myDroplets)
+
+	case publicDropletIPVar == true:
+		publicDropletIP(dropletName, myDroplets)
 
 	default:
 		flag.PrintDefaults()
