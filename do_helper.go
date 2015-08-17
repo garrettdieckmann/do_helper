@@ -125,8 +125,9 @@ func listDropletsNetwork(myDroplets []godo.Droplet) {
 
 /*
 	Print IP address for Public network interface for a specific Droplet (by name)
+	TODO: What happens if Droplet name doesnt exist? Ex. typo
 */
-func publicDropletIP(dropletName string, myDroplets []godo.Droplet) {
+func publicDropletIP(myDroplets []godo.Droplet, dropletName string) {
 	for droplet := 0; droplet < len(myDroplets); droplet++ {
 		if myDroplets[droplet].Name == dropletName {
 			// Get network interface info for this droplet
@@ -157,8 +158,6 @@ func main() {
 	if len(myDroplets) == 0 {
 		log.Fatal("No droplets")
 	}
-	// TODO: no more hard coding
-	dropletName := "Data01"
 
 	// Command line flag processing
 	switch {
@@ -170,7 +169,13 @@ func main() {
 		listDropletsNetwork(myDroplets)
 
 	case publicDropletIPVar == true:
-		publicDropletIP(dropletName, myDroplets)
+		// Get the first argument. If not a Droplet name, fatal
+		dropletName := flag.Arg(0)
+		if dropletName == "" {
+			log.Fatal("publicDropletIP: No Droplet Name specified")
+		} else {
+			publicDropletIP(myDroplets, dropletName)
+		}
 
 	// If none, print defaults from flag definitions
 	default:
