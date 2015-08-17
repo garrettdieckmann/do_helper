@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -27,6 +26,16 @@ func init() {
 	flag.BoolVar(&listDropletsVar, "listDroplets", false, "List basic info on all Droplets")
 	flag.BoolVar(&listDropletsNetworkVar, "listDropletsNetwork", false, "List network info for individual Droplet")
 	flag.BoolVar(&publicDropletIPVar, "publicDropletIP", false, "Get Public IP address for specific Droplet")
+}
+
+/*
+	Token method interface
+*/
+func (t *TokenSource) Token() (*oauth2.Token, error) {
+	token := &oauth2.Token{
+		AccessToken: t.AccessToken,
+	}
+	return token, nil
 }
 
 /*
