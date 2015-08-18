@@ -135,7 +135,7 @@ func publicDropletIP(myDroplets []godo.Droplet, dropletName string) {
 			for neti := 0; neti < len(netinfo); neti++ {
 				// Only retrive the public interface
 				if netinfo[neti].Type == "public" {
-					fmt.Printf("%s", netinfo[neti].IPAddress)
+					fmt.Printf("%s\n", netinfo[neti].IPAddress)
 				}
 			}
 		}
